@@ -1,0 +1,33 @@
+framework:
+  messenger:
+    # Uncomment this (and the failed transport below) to send failed messages to this transport for later handling.
+    failure_transport: failed
+    serializer:
+      default_serializer: messenger.transport.symfony_serializer
+      symfony_serializer:
+        format: json
+        context: { }
+    transports:
+      # https://symfony.com/doc/current/messenger.html#transport-configuration
+      # async: '%env(MESSENGER_TRANSPORT_DSN)%'
+      # failed: 'doctrine://default?queue_name=failed'
+      # sync: 'sync://'
+      external_messages:
+        dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+        serializer: messenger.transport.symfony_serializer
+        retry_strategy:
+          max_retries: 2
+          delay: 1
+        options:
+          exchange:
+            type: topic
+            name: monolith
+          queues:
+            # all the queues you want to consume from a specific exchange
+            bc-service-events:
+              binding_keys: [spotahome.booking_was_created]
+      failed: '%env(MESSENGER_TRANSPORT_DSN)%'
+    routing:
+      App\Message\BoomMessage: external_messages
+        # Route your messages to the transports
+      # 'App\Message\YourMessage': async
